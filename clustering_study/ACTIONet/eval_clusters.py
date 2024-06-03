@@ -15,50 +15,41 @@ from utils.dataloader import get_adata, load_data
 from utils.data_tools import split_data_Kfold
 from utils.cluster_analysis import get_SilhScore
 
-
+# Load paths from configuration file
 paths = load_config(config_file='config.toml')
 saving_folder = paths['package_dir']
 data_file_count = paths['package_dir'] / paths['data_count']
 data_file = paths['package_dir'] / paths['data']
 saving_folder = str(saving_folder)
 
-#data_count = load_data(file=data_file_count, measure='counts', n_gene=5000, ref_genes=True)
-# data = load_data(file=data_file, measure='log1p', n_gene=n_gene, ref_genes=True)
-
-
+# Load data from file
 file = glob.glob(saving_folder + '/clustering_study/ACTIONet/*normalized*.h5ad')[0]
 print(file)
 adata = anndata.read_h5ad(file)
+#data_count = load_data(file=data_file_count, measure='counts', n_gene=5000, ref_genes=True)
+# data = load_data(file=data_file, measure='log1p', n_gene=n_gene, ref_genes=True)
 
+# Extract relevant data
 G_matrix = adata.obsp["ACTIONet"]
 z = adata.obsm["H_stacked"].todense()
 print(z.shape)
 del adata
 
 # Convert the adjacency matrix to an igraph Graph object
-# G = ig.Graph.Adjacency((G_matrix > 0).tolist())
 nonzero_indices = np.transpose(G_matrix.nonzero())
 G = ig.Graph(edges=nonzero_indices.tolist(), directed=False, edge_attrs={'weight': G_matrix.data})
 
-# Create the LeidenVertexPartition object with the specified resolution
-resolution_parameter = 0.04 # 0.04, 0.038, 0.035
-partition = la.find_partition(G, la.CPMVertexPartition, resolution_parameter=resolution_parameter)#, seed=0)
+# Cluster the graph using Leiden algorithm
+resolution_parameter = 0.04
+partition = la.find_partition(G, la.CPMVertexPartition, resolution_parameter=resolution_parameter)
 
-# optimiser = la.Optimiser()
-# profile = optimiser.resolution_profile(G, la.CPMVertexPartition, resolution_range=(0, 1))
-#
-# # Get the optimal resolution
-# optimal_resolution = profile.argmax()
-#
-# print("Optimal resolution:", optimal_resolution)
-
-# Get the clusters
+# Get cluster labels
 label_T = np.array(partition.membership)
-
 n_type = len(np.unique(label_T))
 n_dim = z.shape[-1]
 print(f'Number of clusters: {n_type}')
 
+# Perform K-fold cross-validation
 K_fold = 10
 sc_T, _ = get_SilhScore(z,  label_T)
 train_ind, test_ind = split_data_Kfold(label_T, K_fold)
@@ -81,10 +72,13 @@ for fold in range(K_fold):
     print(f"{acc_T_adj[-1]}")
 
 print(f"Average performance: {np.mean(acc_T_adj)}, {np.std(acc_T_adj)}, {np.mean(sc_T)}, {np.std(sc_T)}")
+
+# Concatenate true and predicted labels for confusion matrix
 true_label = np.concatenate(true_label)
 pred_label = np.concatenate(pred_label)
 conf_mat = confusion_matrix(true_label, pred_label, normalize='true')
 
+# Save results to file
 data_file_id = saving_folder + f"/clustering_study/ACTIONet/Ttype_classification_ACTIONet_K_{n_type}_nFeature_{n_dim}.p"
 f = open(data_file_id, "wb")
 sum_dict = dict()
