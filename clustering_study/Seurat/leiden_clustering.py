@@ -13,6 +13,7 @@ from utils.dataloader import get_adata, load_data
 from utils.data_tools import split_data_Kfold
 from utils.cluster_analysis import get_SilhScore
 
+# Parse command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_gene", default=5000, type=int, help="number of genes")
 parser.add_argument("--n_dim", default=100, type=int, help="number of dimensions aftter dimension reduction")
@@ -25,8 +26,10 @@ parser.add_argument("--clustering", default='leiden', type=str, help="clustering
 parser.add_argument("--training", default=True, type=bool, help="Enable training mode")
 
 
+# Main function
 def main(n_dim, n_neighbors, resolution, K_fold, n_iteration, clustering, n_gene, mode, training):
 
+    # Load paths from configuration file
     paths = load_config(config_file='config.toml')
     saving_folder = paths['package_dir'] / paths['saving_folder_seurat']
     data_file_count = paths['package_dir'] / paths['data_count']
@@ -36,26 +39,30 @@ def main(n_dim, n_neighbors, resolution, K_fold, n_iteration, clustering, n_gene
     folder_name = f'method_{clustering}_{mode}_nDim_{n_dim}_resolution_{resolution}_nKNN_{n_neighbors}'
     saving_folder = str(saving_folder)
 
+    # Load data
     data_count = load_data(file=data_file_count, measure='counts', n_gene=n_gene, ref_genes=True)
     data = load_data(file=data_file, measure='log1p', n_gene=n_gene, ref_genes=True)
 
+    # Perform dimension reduction and clustering, including linear and non-linear methods
     if training:
         if mode == 'linear':
+            # obtain PCA representation
             adata = get_adata(data=data, measure=data_count['log1p'])
             sc.pp.pca(adata, n_comps=n_dim)
             sc.pp.neighbors(adata, n_neighbors=n_neighbors, use_rep='X_pca')
             pca = PCA(n_components=n_dim)
             z = pca.fit(data['log1p']).transform(data['log1p'])
         else:
+            # Load the latent space obtained from scVI
             z = np.load(saving_folder + f'/Z_scvi_10.npy', allow_pickle=True)
             adata = get_adata(data=data_count, measure=z)
             sc.pp.neighbors(adata, n_neighbors=n_neighbors)
 
+        # Cluster the data
         print(f'{clustering} clustering')
         if clustering == 'leiden':
             sc.tl.leiden(adata, resolution=resolution, random_state=0, n_iterations=n_iteration, key_added='leiden', directed=False)
             label_T = adata.obs['leiden'].values
-
         elif clustering == 'DB':
             db_cluster = DBSCAN(eps=resolution, min_samples=n_neighbors).fit(z)
             label_T = db_cluster.labels_
@@ -63,6 +70,7 @@ def main(n_dim, n_neighbors, resolution, K_fold, n_iteration, clustering, n_gene
         n_type = len(np.unique(label_T))
         print(f'Number of clusters: {n_type}')
 
+        # Save clustering results
         file = saving_folder + f"/{folder_name}.p"
         f = open(file, "wb")
         sum_dict = dict()
@@ -78,14 +86,14 @@ def main(n_dim, n_neighbors, resolution, K_fold, n_iteration, clustering, n_gene
         else:
             z = np.load(saving_folder + f'/Z_scvi_10.npy', allow_pickle=True)
 
+        # Load clustering results
         file = saving_folder + f"/{folder_name}.p"
         with open(file, 'rb') as f:
-            # Load the data from the pickle file
             sum_dict = pickle.load(f)
-
         label_T = sum_dict['cluster']
         n_type = sum_dict['n_class']
 
+    # Evaluate clustering performance
     sc_T, _ = get_SilhScore(z,  label_T)
     train_ind, test_ind = split_data_Kfold(label_T, K_fold)
     acc_T = []
@@ -107,12 +115,16 @@ def main(n_dim, n_neighbors, resolution, K_fold, n_iteration, clustering, n_gene
         tlabel.append(data['cluster'][test_id])
         print(f"{acc_T_adj[-1]}")
 
+    # Print average performance metrics
     print(f"Average performance: {np.mean(acc_T_adj)}, {np.std(acc_T_adj)}, {np.mean(sc_T)}, {np.std(sc_T)}")
+
+    # Concatenate true and predicted labels for confusion matrix
     true_label = np.concatenate(true_label)
     pred_label = np.concatenate(pred_label)
     conf_mat = confusion_matrix(true_label, pred_label, normalize='true')
     tlabel = np.concatenate(tlabel)
 
+    # Save results to file
     unique_label = np.unique(true_label)
     T_class_ord = []
     for label in unique_label:
@@ -132,6 +144,4 @@ def main(n_dim, n_neighbors, resolution, K_fold, n_iteration, clustering, n_gene
     f.close()
 
 
-if __name__ == "__main__":
-    args = parser.parse_args()
-    main(**vars(args))
+if __name__ == "__main
