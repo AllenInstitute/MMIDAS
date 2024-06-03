@@ -166,7 +166,8 @@ class cpl_mixVAE:
         fc_sigma = fc_sigma.to(self.device)
         f6_mask = f6_mask.to(self.device)
         batch_size = train_loader.batch_size
-
+        
+        # training the model without pruning
         if self.init:
             print("Start training ...")
             for epoch in range(n_epoch):
@@ -241,7 +242,7 @@ class cpl_mixVAE:
                     epoch, train_loss[epoch], train_recon[0, epoch], train_recon[1, epoch], train_loss_joint[epoch],
                     train_entropy[epoch], train_distance[epoch], time.time() - t0))
 
-                # validation
+                # validation step
                 self.model.eval()
                 with torch.no_grad():
                     val_loss_rec = 0.
@@ -296,6 +297,7 @@ class cpl_mixVAE:
                 validation_loss[epoch] = val_loss / (batch_indx + 1)
                 print('====> Validation Total Loss: {:.4f}, Rec. Loss: {:.4f}'.format(validation_loss[epoch], validation_rec_loss[epoch]))
 
+            # save the model and the learning curve
             if self.save and n_epoch > 0:
                 trained_model = self.folder + '/model/cpl_mixVAE_model_before_pruning_' + self.current_time + '.pth'
                 torch.save({'model_state_dict': self.model.state_dict(), 'optimizer_state_dict': self.optimizer.state_dict()}, trained_model)
@@ -315,6 +317,7 @@ class cpl_mixVAE:
                 ax.figure.savefig(self.folder + '/model/learning_curve_before_pruning_K_' + str(self.n_categories) + '_' + self.current_time + '.png')
                 plt.close("all")
 
+        # training the model with pruning
         if n_epoch_p > 0:
             # initialized pruning parameters of the layer of the discrete variable
             bias = self.model.fcc[0].bias.detach().cpu().numpy()
@@ -372,6 +375,8 @@ class cpl_mixVAE:
                                              where=np.array(num_samp_arm) != 0)
                     c_agreement.append(np.diag(armA_vs_armB))
                     ind_sort = np.argsort(c_agreement[-1])
+
+                    # plot the consensus matrix
                     plt.figure()
                     plt.imshow(armA_vs_armB[:, ind_sort[::-1]][ind_sort[::-1]], cmap='binary')
                     plt.colorbar()
@@ -385,6 +390,7 @@ class cpl_mixVAE:
                     plt.savefig(self.folder + '/consensus_' + str(pr) + '_arm_' + str(arm_a) + '_arm_' + str(arm_b) + '.png', dpi=600)
                     plt.close("all")
 
+            # consensus among arms for each pair of arms 
             c_agreement = np.mean(c_agreement, axis=0)
             agreement = c_agreement[pruning_mask]
             if (np.min(agreement) <= min_con) and pr < max_prun_it:
@@ -412,6 +418,7 @@ class cpl_mixVAE:
                 print('No more pruning!')
                 stop_prune = True
 
+            # continue the training with pruning
             if not stop_prune:
                 print("Continue training with pruning ...")
                 print(f"Pruned categories: {ind}")
@@ -428,6 +435,7 @@ class cpl_mixVAE:
                 train_recon = np.zeros((self.n_arm, n_epoch_p))
                 train_loss_KL = np.zeros((self.n_arm, self.n_categories, n_epoch_p))
 
+                # prune the model based on the consensus
                 for arm in range(self.n_arm):
                     prune.custom_from_mask(self.model.fcc[arm], 'weight', mask=weight_mask)
                     prune.custom_from_mask(self.model.fcc[arm], 'bias', mask=bias_mask)
@@ -516,7 +524,7 @@ class cpl_mixVAE:
                         epoch, train_loss[epoch], train_recon[0, epoch], train_recon[1, epoch], train_loss_joint[epoch],
                         train_entropy[epoch], train_distance[epoch], time.time() - t0))
 
-                    # validation
+                    # validation step
                     self.model.eval()
                     with torch.no_grad():
                         val_loss_rec = 0.
@@ -580,6 +588,7 @@ class cpl_mixVAE:
                     prune.remove(self.model.fc_sigma[arm], 'weight')
                     prune.remove(self.model.fc6[arm], 'weight')
 
+                # save the model and the learning curve
                 trained_model = self.folder + '/model/cpl_mixVAE_model_after_pruning_' + str(pr+1) + '_' + self.current_time + '.pth'
                 torch.save({'model_state_dict': self.model.state_dict(), 'optimizer_state_dict': self.optimizer.state_dict()}, trained_model)
                 # plot the learning curve of the network
@@ -617,7 +626,7 @@ class cpl_mixVAE:
             d_dict: the output dictionary.
         """
 
-        self.model.eval()
+        # initialized saving arrays
         bias = self.model.fcc[0].bias.detach().cpu().numpy()
         pruning_mask = np.where(bias != 0.)[0]
         prune_indx = np.where(bias == 0.)[0]
@@ -643,6 +652,7 @@ class cpl_mixVAE:
         total_loss_rec = [[] for a in range(self.n_arm)]
         total_loglikelihood = [[] for a in range(self.n_arm)]
 
+        # evaluation of the model
         self.model.eval()
         batch_size = data_loader.batch_size
 
@@ -747,7 +757,7 @@ class cpl_mixVAE:
                     else:
                         predicted_label[arm, ] = np.argmax(z_encoder, axis=1) + 1
 
-
+        
         mean_test_rec = np.zeros(self.n_arm)
         mean_total_loss_rec = np.zeros(self.n_arm)
         mean_total_loglikelihood = np.zeros(self.n_arm)
@@ -756,7 +766,7 @@ class cpl_mixVAE:
             mean_total_loss_rec[arm] = np.mean(np.array(total_loss_rec[arm]))
             mean_total_loglikelihood[arm] = np.mean(np.array(total_loglikelihood[arm]))
  
-
+        # save the output in a dictionary
         d_dict = dict()
         d_dict['state_sample'] = state_sample
         d_dict['state_mu'] = state_mu

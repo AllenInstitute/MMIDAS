@@ -94,6 +94,7 @@ class mixVAE_model(nn.Module):
         self.fc9 = mdl([nn.Linear(fc_dim, fc_dim) for i in range(n_arm)])
         self.fc10 = mdl([nn.Linear(fc_dim, fc_dim) for i in range(n_arm)])
         self.fc11 = mdl([nn.Linear(fc_dim, input_dim) for i in range(n_arm)])
+        
         if loss_mode == 'ZINB':
             self.fc11_p = mdl([nn.Linear(fc_dim, input_dim) for i in range(n_arm)])
             self.fc11_r = mdl([nn.Linear(fc_dim, input_dim) for i in range(n_arm)])
