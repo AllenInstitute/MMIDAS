@@ -15,7 +15,7 @@ import glob
 import numpy as np
 
 
-# AD_MTG_norm_L4-IT_ngene_7787.p
+# Setup argument parser for command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_categories", default=100, type=int, help="number of cell types, e.g. 120")
 parser.add_argument("--state_dim", default=3, type=int, help="state variable dimension")
@@ -51,8 +51,11 @@ parser.add_argument("--device", default=None, type=int, help="gpu device, use No
 def main(n_categories, n_arm, state_dim, latent_dim, fc_dim, n_epoch, n_epoch_p, min_con, max_prun_it, batch_size, subclass, sort_gene,
          p_drop, s_drop, lr, temp, n_run, device, hard, tau, variational, ref_pc, augmentation, n_gene, lam, lam_pc, beta, n_pr, n_zim):
 
+    # Load configuration settings from config file
     paths = load_config(config_file='config.toml')
     saving_folder = paths['package_dir'] / paths['saving_folder_cplmix']
+
+    # Load data based on the subclass provided
     if subclass:
         data_file = paths['local_data_path'] / paths['data_' + subclass]
         data = load_data(datafile=data_file) # ref_types=True, ann_smt=paths['ann_smt'], ann_10x=paths['ann_10x'])
@@ -76,10 +79,13 @@ def main(n_categories, n_arm, state_dim, latent_dim, fc_dim, n_epoch, n_epoch_p,
         folder_name = f'run_{n_run}_K_{n_categories}_Sdim_{state_dim}_aug_{augmentation}_p_drop_{p_drop}_fc_dim_{fc_dim}_temp_{temp}_' + \
                       f'lr_{lr}_n_arm_{n_arm}_tau_{tau}_lam_{lam}_nbatch_{batch_size}_nepoch_{n_epoch}_nepochP_{n_epoch_p}'
 
+    # Create directories for saving results
     saving_folder = saving_folder / folder_name
     os.makedirs(saving_folder, exist_ok=True)
     os.makedirs(saving_folder / 'model', exist_ok=True)
     saving_folder = str(saving_folder)
+
+    # Encode cluster labels
     eps = 1e-6
     label_encoder = LabelEncoder()
     integer_encoded = label_encoder.fit_transform(data['cluster_order'])
@@ -89,17 +95,17 @@ def main(n_categories, n_arm, state_dim, latent_dim, fc_dim, n_epoch, n_epoch_p,
     data['c_p'] = softmax((data['c_onehot'] + eps) / tau, axis=1)
     data['n_type'] = len(np.unique(data['cluster_order']))
 
+    # Print dataset details
     print(data['log1p'].shape, len(np.unique(data['cluster_label'])))
 
+    # Sort genes if enabled
     if sort_gene:
         g_index = reorder_genes(data['log1p'])
-        # if n_gene == 0:
-        #     n_gene = len(g_index) // n_arm
-
         g_idx = g_index[0::n_arm]
         for arm in range(1, n_arm):
             g_idx = np.concatenate((g_idx, g_index[arm::n_arm]))
 
+    # Load augmentation file if augmentation is enabled
     if augmentation:
         if subclass in ['Vip', 'Pvalb']:
             aug_file = paths['package_dir'] / paths['saving_folder_augmenter'] / paths['aug_file_gaba']
@@ -109,16 +115,18 @@ def main(n_categories, n_arm, state_dim, latent_dim, fc_dim, n_epoch, n_epoch_p,
             aug_file = paths['package_dir'] / paths['saving_folder_augmenter'] / paths['aug_file_' + subclass]
     else:
         aug_file = ''
-        # datane_id'] = data['gene_id'][g_idx]
 
+    # Select genes based on sorted indices
     data['log1p'] = data['log1p'][:, g_index[:n_gene]]
     data['gene_id'] = data['gene_id'][g_index[:n_gene]]
 
     print(data['log1p'].shape, len(np.unique(data['cluster_label'])), n_gene)
 
+    # Update number of genes if not specified
     if n_gene == 0:
         n_gene = data['log1p'].shape[1]
 
+    # Initialize and train the coupled mixVAE (MMIDAS) model
     cpl_mixVAE = train_cplmixVAE(saving_folder=saving_folder,
                                  aug_file=aug_file,
                                  device=device,
@@ -127,6 +135,7 @@ def main(n_categories, n_arm, state_dim, latent_dim, fc_dim, n_epoch, n_epoch_p,
     train_loader, test_loader, alldata_loader, train_ind, test_ind = cpl_mixVAE.getdata(dataset=data['log1p'],
                                                                                       label=data['cluster_order'],
                                                                                       batch_size=batch_size)
+    # Initialize model with or without pruning
     if n_pr > 0:
         cpl_mixVAE.init_model(n_categories=n_categories,
                               state_dim=state_dim,
@@ -182,6 +191,7 @@ def main(n_categories, n_arm, state_dim, latent_dim, fc_dim, n_epoch, n_epoch_p,
                    )
 
 
+# Run the main function when the script is executed
 if __name__ == "__main__":
     args = parser.parse_args()
     main(**vars(args))
