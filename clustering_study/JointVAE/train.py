@@ -5,7 +5,6 @@ from utils.dataloaders import gene_dataloader, load_10x_data
 from torch import optim
 from torch.nn import functional as F
 from torch.autograd import Variable
-from scipy.optimize import linear_sum_assignment
 import numpy as np
 import scipy.io as sio
 import matplotlib.pyplot as plt
@@ -21,10 +20,10 @@ date = 20240119
 lr = 5e-4
 epochs = 2000
 n_features = 10000
-data_path = '/allen/programs/celltypes/workgroups/mousecelltypes/Yeganeh/CTX-HIP/mouse/brain_map_10x/'
+data_path = '/xxx/CTX-HIP/mouse/brain_map_10x/'
 
 # set the cell types data file
-subclass = 'Glutamatergic' #'GABAergic'  # 'Glutamatergic'
+subclass = 'Glutamatergic' #'GABAergic'  
 measure='log1p'
 data_file = f'{subclass}_isoCTX_nGene_10000.h5ad'
 dataset = load_10x_data(data_path + data_file, measure=measure)
