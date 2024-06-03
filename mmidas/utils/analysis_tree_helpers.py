@@ -155,6 +155,9 @@ def parse_dend(htree_file):
 
 
 def plot_htree(htree_file):
+    """
+    Plots the hierarchy tree from the htree_file. 
+    """
     import matplotlib.pyplot as plt
     import seaborn as sns
     sns.set()

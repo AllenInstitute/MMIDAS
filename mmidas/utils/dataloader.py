@@ -8,6 +8,20 @@ from sklearn.model_selection import train_test_split
 
 
 def load_data(datafile, n_gene=0, gene_id=[], rmv_type=[], min_num=10, eps=1e-1, tau=1.0):
+    """ 
+    Load data from file
+    input args
+        datafile (str): path to the data file
+        n_gene (int, optional): number of genes
+        gene_id (list, optional): list of gene IDs
+        rmv_type (list, optional): list of cell types to remove
+        min_num (int, optional): minimum number of cells per cell type
+        eps (float, optional): epsilon value
+        tau (float, optional): temperature value
+    
+    return
+        data (dict): data dictionary
+    """
 
     adata = anndata.read_h5ad(datafile)
     print('data is loaded!')
@@ -64,48 +78,75 @@ def load_data(datafile, n_gene=0, gene_id=[], rmv_type=[], min_num=10, eps=1e-1,
 
 
 def data_gen(dataset, train_size, seed):
+    """
+    Generate training and testing datasets
+    input args
+        dataset (np.array): dataset
+        train_size (int): size of the training dataset
+        seed (int): random seed
+    
+    return
+        train_cpm (np.array): training dataset
+        test_cpm (np.array): testing dataset
+        train_ind (np.array): training indices
+        test_ind (np.array): testing indices
+    
+    """
 
-        test_size = dataset.shape[0] - train_size
-        train_cpm, test_cpm, train_ind, test_ind = train_test_split(
-            dataset, np.arange(dataset.shape[0]), train_size=train_size, test_size=test_size, random_state=seed)
+    test_size = dataset.shape[0] - train_size
+    train_cpm, test_cpm, train_ind, test_ind = train_test_split(
+        dataset, np.arange(dataset.shape[0]), train_size=train_size, test_size=test_size, random_state=seed)
 
-        return train_cpm, test_cpm, train_ind, test_ind
+    return train_cpm, test_cpm, train_ind, test_ind
 
 
 def get_loaders(dataset, label=[], seed=None, batch_size=128, train_size=0.9):
+    """
+    prepare data loaders
 
-        batch_size = batch_size
+    input args
+        dataset (np.array): dataset
+        label (np.array): labels
+        seed (int): random seed
+        batch_size (int): batch size
+        train_size (float): size of the training dataset
 
-        if len(label) > 0:
-            train_ind, val_ind, test_ind = [], [], []
-            for ll in np.unique(label):
-                indx = np.where(label == ll)[0]
-                tt_size = int(train_size * sum(label == ll))
-                _, _, train_subind, test_subind = data_gen(dataset, tt_size, seed)
-                train_ind.append(indx[train_subind])
-                test_ind.append(indx[test_subind])
+    return
+        train_loader, test_loader, alldata_loader
+    
+    """
+    
+    # split the data into training and testing, if labels are provided split the data based on the labels
+    if len(label) > 0:
+        train_ind, val_ind, test_ind = [], [], []
+        for ll in np.unique(label):
+            indx = np.where(label == ll)[0]
+            tt_size = int(train_size * sum(label == ll))
+            _, _, train_subind, test_subind = data_gen(dataset, tt_size, seed)
+            train_ind.append(indx[train_subind])
+            test_ind.append(indx[test_subind])
 
-            train_ind = np.concatenate(train_ind)
-            test_ind = np.concatenate(test_ind)
-            train_set = dataset[train_ind, :]
-            test_set = dataset[test_ind, :]
-        else:
-            tt_size = int(train_size * dataset.shape[0])
-            train_set, test_set, train_ind, test_ind = data_gen(dataset, tt_size, seed)
+        train_ind = np.concatenate(train_ind)
+        test_ind = np.concatenate(test_ind)
+        train_set = dataset[train_ind, :]
+        test_set = dataset[test_ind, :]
+    else:
+        tt_size = int(train_size * dataset.shape[0])
+        train_set, test_set, train_ind, test_ind = data_gen(dataset, tt_size, seed)
 
-        train_set_torch = torch.FloatTensor(train_set)
-        train_ind_torch = torch.FloatTensor(train_ind)
-        train_data = TensorDataset(train_set_torch, train_ind_torch)
-        train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True, pin_memory=True)
+    train_set_torch = torch.FloatTensor(train_set)
+    train_ind_torch = torch.FloatTensor(train_ind)
+    train_data = TensorDataset(train_set_torch, train_ind_torch)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True, pin_memory=True)
 
-        test_set_torch = torch.FloatTensor(test_set)
-        test_ind_torch = torch.FloatTensor(test_ind)
-        test_data = TensorDataset(test_set_torch, test_ind_torch)
-        test_loader = DataLoader(test_data, batch_size=1, shuffle=True, drop_last=False, pin_memory=True)
+    test_set_torch = torch.FloatTensor(test_set)
+    test_ind_torch = torch.FloatTensor(test_ind)
+    test_data = TensorDataset(test_set_torch, test_ind_torch)
+    test_loader = DataLoader(test_data, batch_size=1, shuffle=True, drop_last=False, pin_memory=True)
 
-        data_set_troch = torch.FloatTensor(dataset)
-        all_ind_torch = torch.FloatTensor(range(dataset.shape[0]))
-        all_data = TensorDataset(data_set_troch, all_ind_torch)
-        alldata_loader = DataLoader(all_data, batch_size=batch_size, shuffle=False, drop_last=False, pin_memory=True)
+    data_set_troch = torch.FloatTensor(dataset)
+    all_ind_torch = torch.FloatTensor(range(dataset.shape[0]))
+    all_data = TensorDataset(data_set_troch, all_ind_torch)
+    alldata_loader = DataLoader(all_data, batch_size=batch_size, shuffle=False, drop_last=False, pin_memory=True)
 
-        return train_loader, test_loader, alldata_loader
+    return train_loader, test_loader, alldata_loader

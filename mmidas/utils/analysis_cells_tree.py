@@ -96,6 +96,7 @@ class HTree():
         return
     
     def get_marker(self, exclude=[]):
+        '''Return a list of marker genes for each leaf node in the tree'''
 
         if len(exclude)==0:
             subclass_list = ['L2/3', 'L4', 'L5', 'L6', 'IT', 'PT', 'NP', 'CT', 'VISp', 'ALM', 'Sst', 'Vip', 'Lamp5', 'Pvalb', 'Sncg', 'Serpinf1']
@@ -118,6 +119,7 @@ class HTree():
              fig=None, ax=None, linewidth=1, save=False, path=[], n_node=0, 
              marker='s', marker_size=12, hline_nodes=[], n_c=[], cell_count=[0], 
              add_marker=False, margin_y=0.001):
+        '''Plot the hierarchical tree. '''
         if fig is None:
             fig = plt.figure(figsize=figsize)
             ax = plt.gca()
@@ -204,6 +206,7 @@ class HTree():
         return
     
     def plotnodes(self,nodelist,fig=None):
+        '''Plot the nodes in the list nodelist with a red square marker.'''
         ind = np.isin(self.child,nodelist)
         plt.plot(self.x[ind], self.y[ind],'s',color='r')
         return
@@ -365,6 +368,9 @@ def simplify_tree(pruned_subtree,skip_nodes=None):
 
 
 def dend_json_to_df(json_file):
+    """
+    Convert a json file to a pandas dataframe
+    """
     with open(json_file, 'r') as f:
         s = f.read()
         s = s.replace('\t', '')

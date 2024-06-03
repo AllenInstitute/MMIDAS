@@ -299,6 +299,18 @@ class HTree():
         return 
     
     def get_merged_types(self, cells_labels, num_classes=0, ref_leaf=[], node='n4'):
+        """ Merge cell types based on the hierarchical tree
+        input args
+            htree_file (str): path to the hierarchical tree
+            cells_labels (np.array): cell type labels
+            num_classes (int, optional): number of original classes
+            ref_leaf (list, optional): reference leaf nodes
+            node (str, optional): reference node for cutting the tree
+            
+            return
+            merged_cells_labels (np.array): merged cell type labels
+            mod_subtree (HTree): modified subtree
+        """
 
         # get a subtree according the to the given node:
         subtree = self.get_subtree(node=node)
@@ -409,6 +421,8 @@ def simplify_tree(pruned_subtree,skip_nodes=None):
 
 
 def dend_json_to_df(json_file):
+    """Convert a dendrogram json file to a pandas dataframe"""
+
     with open(json_file, 'r') as f:
         s = f.read()
         s = s.replace('\t', '')

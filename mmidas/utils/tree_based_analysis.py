@@ -5,6 +5,15 @@ from mmidas.utils.analysis_cells_tree import HTree, do_merges
 resolution = 600
 
 def corr_analysis(state, cell):
+        """ Compute correlation between cell types and gene expression
+        input args
+            state (np.array): cell type states
+            cell (np.array): gene expression matrix
+
+        return
+            all_corr (list): list of correlation coefficients
+            all_geneID (list): list of gene IDs
+        """
 
         n_gene = cell.shape[-1]
         all_corr, all_geneID = [], []
@@ -24,42 +33,25 @@ def corr_analysis(state, cell):
                     cor_coef[g], p_val[g] = 0, 0
 
             g_id = np.argsort(np.abs(cor_coef))
-            # gene.append(dataset['gene_id'][g_id[-10:]])
-            # max_corr.append(cor_coef[g_id])
             all_corr.append(np.sort(np.abs(cor_coef)))
             all_geneID.append(g_id)
-
-            # create a linear regression model
-            # zind = np.where(expression[:, g_id] > 0)
-            # x = s_val[zind[0], s]
-            # y = expression[zind[0], g_id]
-            # model = LinearRegression()
-            # model.fit(np.expand_dims(x, -1), np.expand_dims(y, -1))
-            #
-            # # predict y from the data
-            # x_new = np.linspace(np.min(x)-.2, np.max(x)+.2, 100)
-            # y_new = model.predict(x_new[:, np.newaxis])
-            #
-            # # plot the results
-            # ax = plt.axes()
-            # ax.scatter(x, y, alpha=0.3, s=15, c='black')
-            # ax.plot(x_new, y_new, c='black')
-            # ax.axis('scaled')
-            # ax.set_ylim([np.min(y)-0.2, np.max(y)+0.2])
-            # ax.set_xlabel('S conditioning on Z=' + str(cat+1),
-            #               fontsize=8)
-            # ax.set_ylabel('Gene Expression for ' + gene[-1], fontsize=8)
-            # ax.set_title('corr. coef. {:.2f}'.format(max_corr[-1]))
-            # plt.savefig(folder + '/state_analysis/state_' + str(s) +
-            #             '_gene_corr_K' + str(
-            #     cat+1) + '_g_' + gene[-1] +
-            #             '.png', dpi=resolution, bbox_inches='tight')
-            # plt.close('all')
 
         return all_corr, all_geneID
 
 
 def get_merged_types(htree_file, cells_labels, num_classes=0, ref_leaf=[], node='n4'):
+    """ Merge cell types based on the hierarchical tree
+    input args
+        htree_file (str): path to the hierarchical tree
+        cells_labels (np.array): cell type labels
+        num_classes (int, optional): number of original classes
+        ref_leaf (list, optional): reference leaf nodes
+        node (str, optional): reference node for cutting the tree
+        
+        return
+        merged_cells_labels (np.array): merged cell type labels
+        mod_subtree (HTree): modified subtree
+    """
     # get the tree
     htree = HTree(htree_file=htree_file)
     htree.parent = np.array([c.strip() for c in htree.parent])

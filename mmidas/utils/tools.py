@@ -44,6 +44,7 @@ def get_paths(toml_file, sub_file='files', verbose=False):
 
     return config
 
+
 def normalize_cellxgene(x) -> np.array:
     """ Normalize based on number of input genes
 
@@ -77,6 +78,15 @@ def print_attrs(name, obj):
 
 
 def reorder_genes(x, chunksize=1000, eps=1e-1):
+    """ Reorder genes based on their variability
+    inpout args
+        x (np.array): cell x gene matrix (cells along axis=0, genes along axis=1)
+        chunksize (int, optional): chunksize for gene reordering
+        eps (float, optional): threshold for binarization
+
+    return
+        reordered gene indices
+    """
     t_gene = x.shape[1]
     print(t_gene)
     g_std, g_bin_std = [], []
@@ -97,6 +107,14 @@ def reorder_genes(x, chunksize=1000, eps=1e-1):
 
 
 def split_data_Kfold(class_label, K_fold):
+    """ Split data into K folds
+    inpout args
+        class_label (np.array): class labels
+        K_fold (int): number of folds
+
+    return
+        train_ind, test_ind: indices for training and testing
+    """
     uniq_label = np.unique(class_label)
     label_train_indices = [[] for ll in uniq_label]
     label_test_indices = [[] for ll in uniq_label]
@@ -131,6 +149,3 @@ def split_data_Kfold(class_label, K_fold):
         train_ind[fold] = train_ind[fold][index]
 
     return train_ind, test_ind
-
-
-

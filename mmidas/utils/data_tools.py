@@ -5,21 +5,23 @@ from scipy import sparse
 
 
 def normalize_cellxgene(x):
-    """Normalize based on number of input genes
+    """
+    Normalize based on number of input genes
 
     Args:
         x (np.array): cell x gene matrix (cells along axis=0, genes along axis=1)
-        scale_factor (float): Scalar multiplier
     
     Returns: 
         x, np.mean(x)
     """
-    # x = np.divide(x, np.sum(x, axis=1, keepdims=True))*scale_factor
-
     return normalize(x, axis=1, norm='l1')
 
 
 def print_attrs(name, obj):
+    """
+    Print attributes of an object
+    """
+
     print(name)
     for key, val in obj.attrs.items():
         print("    %s: %s" % (key, val))
@@ -27,6 +29,18 @@ def print_attrs(name, obj):
 
 
 def reorder_genes(x, chunksize=1000, eps=1e-1):
+    """
+    Reorder genes based on their variability
+
+    Args:
+        x (np.array): cell x gene matrix (cells along axis=0, genes along axis=1)
+        chunksize (int): chunksize for gene reordering
+        eps (float): threshold for binarization
+
+    Returns:
+        reordered gene indices
+    """
+
     t_gene = x.shape[1]
     print(t_gene)
     g_std, g_bin_std = [], []
@@ -47,6 +61,17 @@ def reorder_genes(x, chunksize=1000, eps=1e-1):
 
 
 def split_data_Kfold(class_label, K_fold):
+    """
+    Split the data to K folds
+
+    Args:
+        class_label (np.array): class labels
+        K_fold (int): number of folds
+
+    Returns:
+        train_ind, test_ind
+    
+    """
     uniq_label = np.unique(class_label)
     label_train_indices = [[] for ll in uniq_label]
     label_test_indices = [[] for ll in uniq_label]

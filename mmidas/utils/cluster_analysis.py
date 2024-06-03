@@ -12,6 +12,20 @@ from sklearn.metrics import accuracy_score
 
 
 def RF_classifier(data, labels, kfold, seed):
+    """
+    Random Forest classifier
+
+    Args:
+        data (np.array): data
+        labels (dict): labels
+        kfold (int): number of folds
+        seed (int): random seed
+
+    Returns:
+        acc (dict): accuracy
+        ref_labels (dict): reference labels
+        pred_labels (dict): predicted labels
+    """
 
     kf = KFold(n_splits=kfold, random_state=seed, shuffle=True)
     acc = dict()
@@ -36,6 +50,21 @@ def RF_classifier(data, labels, kfold, seed):
 
 
 def LDA_classifier(data, labels, kfold, seed):
+    """
+    Linear Discriminant Analysis classifier
+
+    Args:
+        data (np.array): data
+        labels (dict): labels
+        kfold (int): number of folds
+        seed (int): random seed
+
+    Returns:
+        acc (dict): accuracy
+        ref_labels (dict): reference labels
+        pred_labels (dict): predicted labels
+
+    """
 
     kf = KFold(n_splits=kfold, random_state=seed, shuffle=True)
     acc = dict()
@@ -60,6 +89,21 @@ def LDA_classifier(data, labels, kfold, seed):
 
 
 def QDA_classifier(data, labels, kfold, seed):
+    """
+    Quadratic Discriminant Analysis classifier
+
+    Args:
+        data (np.array): data
+        labels (dict): labels
+        kfold (int): number of folds
+        seed (int): random seed
+
+    Returns:
+        acc (dict): accuracy
+        ref_labels (dict): reference labels
+        pred_labels (dict): predicted labels
+
+    """
 
     kf = KFold(n_splits=kfold, random_state=seed, shuffle=True)
     acc = dict()
@@ -85,6 +129,22 @@ def QDA_classifier(data, labels, kfold, seed):
 
 
 def cluster_compare(data, labels, num_pc=0, saving_path=''):
+    """
+    Compare clustering results
+
+    Args:
+        data (np.array): data
+        labels (dict): labels
+        num_pc (int): number of PCs
+        saving_path (str): path to save the figure
+
+    Returns:
+        fig (plt.figure): figure
+        silh_smp_score (list): silhouette sample score
+        sil_score (list): silhouette score
+        c_size (list): cluster size
+
+    """
 
     fig = plt.figure(figsize=[10, 5])
     ax = fig.add_subplot()
@@ -121,6 +181,21 @@ def cluster_compare(data, labels, num_pc=0, saving_path=''):
 
 
 def K_selection(data_dict, num_category, n_arm, thr=0.95):
+    """
+    Select the number of clusters
+
+    Args:
+        data_dict (dict): data dictionary
+        num_category (int): number of categories
+        n_arm (int): number of arms
+        thr (float): threshold for consensus value
+
+    Returns:
+        data_dict['num_pruned'][indx]: number of pruned indices
+        l_recon_mean[indx]: mean reconstruction loss
+        consensus[indx]: consensus
+        K: number of clusters   
+    """
 
     n_comb = max(n_arm * (n_arm - 1) / 2, 1)
 
@@ -199,6 +274,17 @@ def K_selection(data_dict, num_category, n_arm, thr=0.95):
 
 
 def get_SilhScore(x, labels):
+    """
+    Calculate silhouette score
+
+    Args:
+        x (np.array): data
+        labels (np.array): labels
+
+    Returns:
+        mean_smp_sc (np.array): mean silhouette sample score
+        sil_score (float): silhouette score
+    """
 
     uni_class = np.unique(labels)
     sample_score = silhouette_samples(x, labels)

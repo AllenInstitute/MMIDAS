@@ -8,6 +8,16 @@ from utils.analysis_tree_helpers import parse_dend, get_ancestors
 
 
 def cell_nodes_dict(treeobj, num_cell=132):
+    """
+    Create a dictionary of cell nodes and their ancestors
+
+    Args:
+        treeobj (object): tree object
+        num_cell (int): number of cells
+
+    Returns:
+        dict: dictionary of cell nodes and their ancestors
+    """
 
     dict = {}
     for i, s in enumerate(treeobj.child):
@@ -18,7 +28,19 @@ def cell_nodes_dict(treeobj, num_cell=132):
     return dict
 
 def hierarchy_plot(treeobj, p_cat, unique_types):
+    """
+    Plot the hierarchy of cell types
 
+    Args:
+        treeobj (object): tree object
+        p_cat (np.array): probability matrix
+        unique_types (list): list of unique cell types
+
+    Returns:
+        ax, fig
+    """
+
+    # list of parents that are not used
     not_used_parents = np.array(['n118', 'n119', 'n120','n121','n122',
                                         'n123','n124', 'n125', 'n126',
                                         'n127', 'n128', 'n129', 'n130',
@@ -58,11 +80,6 @@ def hierarchy_plot(treeobj, p_cat, unique_types):
             plt.plot(xx[i], yy[i], 's', c=col[i], ms=1)
             barplt = plt.bar(xx[i], height=p_cat[cluster_id], width=1,
                              bottom=yy[i] + 0.03, align='center', color=col[i])
-            # prob = barplt.get_height()
-            # plt.text(barplt.get_x() + barplt.get_width() / 2.,
-            #           1.05 * prob, '%s' % nodes[i], rotation=90,
-            #           ha='center', va='bottom', fontsize=5)
-
 
     ax = plt.gca()
     ax.set_xticks([])
@@ -75,6 +92,19 @@ def hierarchy_plot(treeobj, p_cat, unique_types):
 
 
 def heatmap_plot(treeobj, cluster_per_cat, unique_types, leaf_size, markSize=1):
+    """
+    Plot the heatmap of cell types with the hierarchy of cell types
+
+    Args:
+        treeobj (object): tree object
+        cluster_per_cat (np.array): probability matrix
+        unique_types (list): list of unique cell types
+        leaf_size (int): number of leaf nodes
+        markSize (int): size of the marker
+
+    Returns:
+        ax2, fig2
+    """
 
     not_used_parents = np.array(['n118', 'n119', 'n120','n121','n122',
                                         'n123','n124', 'n125', 'n126',
@@ -149,27 +179,25 @@ def heatmap_plot(treeobj, cluster_per_cat, unique_types, leaf_size, markSize=1):
                 yticklabels=False, vmin=0, vmax=1,
                 cbar_kws={"shrink": 1}, annot_kws={"size": 18}) #"shrink": 1
     axx.invert_yaxis()
-    #'cividis'
-
-    # if distance[0].shape[0] > 80:
-    #     plt.bar(np.linspace(0, distance.shape[0], distance.shape[0]) +x_b,
-    #             distance.shape[0]/6 * np.diag(-tmp[:,col_ind]), width=width,
-    #             color='black')
-
-
     fig2.tight_layout()
-    # fig.subplots_adjust(bottom=0.2)
     ax2 = plt.gca()
     ax2.set_xticks([])
     ax2.set_yticks([])
-    # ax2.set_xlim([np.min(xx) - distance.shape[0]/2, cluster_per_cat.shape[-1]
-    #               + 1])
-    # ax2.set_ylim([-distance.shape[0]/6, distance.shape[0]+1])
     fig2.tight_layout()
 
     return ax2, fig2
 
 def dent_plot(treeobj, cluster_per_cat):
+    """
+    Plot the dendrogram of cell types
+
+    Args:
+        treeobj (object): tree object
+        cluster_per_cat (np.array): number of cell types per category
+
+    Returns:
+        ax, fig
+    """
 
     not_used_parents = np.array(['n118', 'n119', 'n120','n121','n122',
                                         'n123','n124', 'n125', 'n126',
@@ -226,13 +254,9 @@ def dent_plot(treeobj, cluster_per_cat):
 
     axx.invert_yaxis()
 
-    # fig.subplots_adjust(bottom=0.2)
     ax = plt.gca()
     ax.set_xticks([])
     ax.set_yticks([])
-    # ax.set_xlim([np.min(xx) - cluster_per_cat.shape[0]/2, cluster_per_cat.shape[-1]
-    #               + 1])
-    # ax.set_ylim([-cluster_per_cat.shape[0]/6, cluster_per_cat.shape[0]+1])
     ax.set_ylabel('Cell Types', fontsize=20)
     ax.set_xlabel('Merged categories', fontsize=20)
     fig.tight_layout()
