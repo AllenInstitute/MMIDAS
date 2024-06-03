@@ -1,7 +1,5 @@
-# ROOT = '/allen/programs/celltypes/workgroups/mousecelltypes/Yeganeh/cascadeVAE/10x/Dsprites_exp/model/'
-ROOT = '/home/yeganeh/github/cascadeVAE/10x/Dsprites_exp/model/'
-# DSPRITESPATH = '/allen/programs/celltypes/workgroups/mousecelltypes/Yeganeh/cascadeVAE/10x/Dsprites_exp/data/'
-DSPRITESPATH = '/home/yeganeh/github/cascadeVAE/10x/Dsprites_exp/data/'
+ROOT = 'xxx/cascadeVAE/10x/Dsprites_exp/model/'
+DSPRITESPATH = 'xxx/cascadeVAE/10x/Dsprites_exp/data/'
 
 import os
 import sys
