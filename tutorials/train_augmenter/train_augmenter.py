@@ -5,13 +5,11 @@ from utils.config import load_config
 device = torch.device("cuda:0" if(torch.cuda.is_available()) else "cpu")
 print(device, " will be used.\n")
 
+# Load the configuration file
 paths = load_config(config_file='config.toml')
-# data_file = '/home/yeganeh/Remote-AI/MTG_AD_data/all_donors_data/AD_MTG_L2-3-IT_nGene_9881_nDonor_84.p'
-n_gene = 5000
-data_file = '/allen/programs/celltypes/workgroups/mousecelltypes/Yeganeh/MTG_AD_data/all_donors_data/AD_MTG_Sst_nGene_' + str(n_gene) + '_nDonor_84.p'
-saving_path = '/allen/programs/celltypes/workgroups/mousecelltypes/Yeganeh/'
-# os.makedirs(saving_path + '/results/augmenter', exist_ok=True)
-# saving_path = saving_path + '/results/augmenter/'
+# Define the path to the data file and the saving path
+data_file = '/xxx/xxx.h5ad'
+saving_path = '/xxx/'
 
 # Dictionary of the training parameters for CTX-HIP datatset
 parameters = {'batch_size': 1000,  # batch size
@@ -30,7 +28,7 @@ parameters = {'batch_size': 1000,  # batch size
             'affine': False,
             'n_run': 1,
             'save': 'True', # saving flag
-            'file_name':  saving_path + 'model_Sst_zdim_2_D_10_ngene_' + str(n_gene),
+            'file_name':  saving_path + 'augmenter_model',
             'saving_path': saving_path
             }
 
