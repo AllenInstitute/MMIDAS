@@ -8,7 +8,7 @@ requires-python = ">= 3.8"
 
 authors = [
   {name = "Yeganeh Marghi", email = "yeganeh.marghi@alleninstitute.org", affiliation = "Allen Institute for Brain Science"},
-  name = "Rohan Gala", email = "rohang@alleninstitute.org", affiliation = "Allen Institute for Brain Science"}
+  {name = "Rohan Gala", email = "rohang@alleninstitute.org", affiliation = "Allen Institute for Brain Science"}
 ]
 
 readme = "README.md"
