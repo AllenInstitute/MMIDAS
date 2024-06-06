@@ -4,7 +4,18 @@ from torch.utils.data import DataLoader, TensorDataset
 
 
 def get_genes(gene_id, n_genes):
+    """
+    Get gene indices for the selected genes
 
+    Args:
+        gene_id (list): list of gene IDs
+        n_genes (int): number of genes
+
+    Returns:
+        gene_index (np.array): gene indices
+    """
+
+    # Define the genes for each neuronal type, here, we use the genes from the Allen Brain Atlas
     gaba_ind_1, gaba_ind_2, glutam_ind = np.array([]), np.array([]), np.array([])
     glutam_genes = ['Slc30a3', 'Cux2', 'Rorb', 'Deptor', 'Scnn1a', 'Rspo1',
                     'Hsd11b1', 'Batf3', 'Oprk1', 'Osr1', 'Car3', 'Fam84b',
@@ -53,6 +64,23 @@ def get_genes(gene_id, n_genes):
 
 
 def get_data(data, batch_size, training=True, n_feature=0, gene_id=[], ref_genes=False, eps=1e-1, tau=0.11, min_num=10):
+    """
+    Load data from file
+    input args
+        data (dict): data dictionary
+        batch_size (int): batch size
+        training (bool): training or testing
+        n_feature (int, optional): number of features
+        gene_id (list, optional): list of gene IDs
+        ref_genes (bool, optional): reference genes
+        eps (float, optional): epsilon value
+        tau (float, optional): temperature value
+        min_num (int, optional): minimum number of cells per cell type
+
+    return
+        dataloader (DataLoader): data loader
+
+    """
 
     print(data['log1p'].shape, len(data['cluster_label']), len(data['gene_id']))
 
