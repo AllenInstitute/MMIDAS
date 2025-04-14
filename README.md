@@ -1,6 +1,6 @@
 # MMIDAS (Mixture Model Inference with Discrete-coupled AutoencoderS)
 
-Implementation of [Joint inference of discrete cell types and continuous type-specific variability in single-cell datasets with MMIDAS]([https://www.biorxiv.org/content/10.1101/2023.10.02.560574v1.abstract](https://www.nature.com/articles/s43588-024-00683-8)).
+Implementation of [Joint inference of discrete cell types and continuous type-specific variability in single-cell datasets with MMIDAS](https://www.nature.com/articles/s43588-024-00683-8).
 
 A generalized and unsupervised mixture variational model with a multi-armed deep neural network, to jointly infer the discrete type and continuous type-specific variability. This framework can be applied to analysis of both, uni-modal and multi-modal datasets. It outperforms comparable models in inferring interpretable discrete and continuous representations of cellular identity, and uncovers novel biological insights. MMIDAS can thus help researchers identify more robust cell types, study cell type-dependent continuous variability, interpret such latent factors in the feature domain, and study multi-modal datasets.
 
