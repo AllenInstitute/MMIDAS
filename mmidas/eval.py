@@ -1,8 +1,11 @@
 import numpy as np
+from sklearn.preprocessing import normalize
 import pickle
 import matplotlib.pyplot as plt
+import pdb
 
-def summarize_inference(cpl_mixVAE, files, data, saving_folder=''):
+
+def summarize_inference(cpl_mixVAE, files, data, saving_folder='', min_c_size=0, verbose=True):
     """
     Inference summary for the cpl_mixVAE model
 
@@ -24,7 +27,7 @@ def summarize_inference(cpl_mixVAE, files, data, saving_folder=''):
     n_pruned = []             # Number of pruned categories
     consensus_min = []        # Minimum consensus value
     consensus_mean = []       # Mean consensus value
-    test_loss = [[]]          # Test loss for each arm
+    test_loss = [[] for a in range(cpl_mixVAE.n_arm)]         # Test loss for each arm
     prune_indx = []           # Pruned indices
     consensus = []            # Consensus matrix
     AvsB = []                 # ArmA vs. ArmB comparison
@@ -39,7 +42,8 @@ def summarize_inference(cpl_mixVAE, files, data, saving_folder=''):
     for i, file in enumerate(files):
         # Extract model name from file path
         file_name_ind = file.rfind('/')
-        print(f'Model {file[file_name_ind:]}')
+        if verbose:
+            print(f'Model {file[file_name_ind:]}')
 
         # Load the model
         cpl_mixVAE.load_model(file)
@@ -57,6 +61,7 @@ def summarize_inference(cpl_mixVAE, files, data, saving_folder=''):
         prune_indx.append(output_dict['prune_indx'])
         sample_id.append(output_dict['data_indx'])
         label_pred.append(predicted_label)
+        update_prun = False
 
         # Store test loss for each arm
         for arm in range(cpl_mixVAE.n_arm):
@@ -69,28 +74,46 @@ def summarize_inference(cpl_mixVAE, files, data, saving_folder=''):
         # Calculate consensus values
         for arm_a in range(cpl_mixVAE.n_arm):
             pred_a = predicted_label[arm_a, :]
+            add_prun_index_a = []
+            for cc in np.unique(pred_a):
+                if sum(pred_a == cc) < min_c_size:
+                    update_prun = True
+                    add_prun_index_a.append(int(cc - 1))
+                    sorted_c = np.argsort(c_prob[arm_a][pred_a == cc, :], axis=1)
+                    updated_c = np.array(list(map(lambda c: select_valid(prune_indx[i], c), sorted_c)))
+                    predicted_label[arm_a, pred_a == cc]= updated_c + 1
+                    
+            pred_a = predicted_label[arm_a, :]  
+            add_prun_index_b = []      
             for arm_b in range(arm_a + 1, cpl_mixVAE.n_arm):
                 pred_b = predicted_label[arm_b, :]
+                for cc in np.unique(pred_a):
+                    if sum(pred_b == cc) < min_c_size:
+                        update_prun = True
+                        add_prun_index_b.append(int(cc - 1))
+                        sorted_c = np.argsort(c_prob[arm_b][pred_b == cc, :], axis=1)
+                        updated_c = np.array(list(map(lambda c: select_valid(prune_indx[i], c), sorted_c)))
+                        predicted_label[arm_b, pred_b == cc]= updated_c + 1
+                
+                pred_b = predicted_label[arm_b, :]   
                 armA_vs_armB = np.zeros((cpl_mixVAE.n_categories, cpl_mixVAE.n_categories))
 
                 for samp in range(pred_a.shape[0]):
                     armA_vs_armB[pred_a[samp].astype(int) - 1, pred_b[samp].astype(int) - 1] += 1
 
-                num_samp_arm = []
-                for ij in range(cpl_mixVAE.n_categories):
-                    sum_row = armA_vs_armB[ij, :].sum()
-                    sum_column = armA_vs_armB[:, ij].sum()
-                    num_samp_arm.append(max(sum_row, sum_column))
-
-                armA_vs_armB_norm = np.divide(armA_vs_armB, np.array(num_samp_arm), out=np.zeros_like(armA_vs_armB),
-                                         where=np.array(num_samp_arm) != 0)
+                armA_vs_armB_norm = normalize(armA_vs_armB, axis=1, norm='l1')
+                if update_prun:
+                    add_prun_index = set(add_prun_index_a).union(set(add_prun_index_b))
+                    prune_indx[i] = np.concatenate((prune_indx[i], np.array(list(add_prun_index))))
+                
                 nprune_indx = np.where(np.isin(range(cpl_mixVAE.n_categories), prune_indx[i]) == False)[0]
                 armA_vs_armB_norm = armA_vs_armB_norm[:, nprune_indx][nprune_indx]
                 armA_vs_armB = armA_vs_armB[:, nprune_indx][nprune_indx]
                 diag_term = np.diag(armA_vs_armB_norm)
                 ind_sort = np.argsort(diag_term)
                 consensus_min.append(np.min(diag_term))
-                con_mean = 1. - (sum(np.abs(predicted_label[0, :] - predicted_label[1, :]) > 0.) / predicted_label.shape[1])
+                # con_mean = 1. - (sum(np.abs(pred_a != pred_b)) / predicted_label.shape[1])
+                con_mean = np.mean(diag_term)
                 consensus_mean.append(con_mean)
                 AvsB.append(armA_vs_armB)
                 consensus.append(armA_vs_armB_norm)
@@ -98,6 +121,7 @@ def summarize_inference(cpl_mixVAE, files, data, saving_folder=''):
         # Store number of pruned indices
         n_pruned.append(len(nprune_indx))
         plt.close()
+        # pdb.set_trace()
 
     # Create dictionary to store results
     data_dic = {}
@@ -128,3 +152,12 @@ def summarize_inference(cpl_mixVAE, files, data, saving_folder=''):
         f.close()
 
     return data_dic
+
+
+
+def select_valid(prune_index, c):
+    i = 1
+    while np.isin(c[-1 - i], prune_index):
+        i += 1
+        
+    return c[-1 - i]

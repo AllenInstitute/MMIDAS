@@ -1,26 +1,23 @@
 import pickle
 import numpy as np
-from sklearn.metrics.cluster import adjusted_rand_score
 import time
 import torch
+import pdb
 from torch.autograd import Variable
 import torch.nn.utils.prune as prune
-from torch.utils.data import DataLoader, TensorDataset
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from .augmentation.udagan import *
-from .nn_model import mixVAE_model
+from .networks_mixvae import RNA_RNA_mixVAE as mixVAE_model
 
 
 class cpl_mixVAE:
 
-    def __init__(self, saving_folder='', aug_file='', device=None, eps=1e-8, save_flag=True):
+    def __init__(self, saving_folder='', augmenter=[], device=None, eps=1e-8, save_flag=True):
         """
         Initialized the cpl_mixVAE class.
 
         input args:
             saving_folder: a string that indicates the folder to save the model(s) and file(s).
-            aug_file: a string that indicates the file of the pre-trained augmenter.
+            augmentor: the pre-trained augmenter.
             device: computing device, either 'cpu' or 'cuda'.
             eps: a small constant value to fix computation overflow.
             save_flag: a boolean variable, if True, the model is saved.
@@ -29,34 +26,24 @@ class cpl_mixVAE:
         self.eps = eps
         self.save = save_flag
         self.folder = saving_folder
-        self.aug_file = aug_file
+        self.aug = [True if augmenter  else False][0]
         self.device = device
 
         if device is None:
             self.device = torch.device('cpu')
             print('---> Computional node is not assigned, using CPU!')
         else:
-            if device == 'cpu':
-                self.device = torch.device('cpu')
-                print('---> Using CPU!')
-            else:
-                self.device = torch.device(torch.cuda.current_device())
+           try:
                 torch.cuda.set_device(self.device)
                 print('--->' + torch.cuda.get_device_name(torch.cuda.current_device()))
+           except:
+               print('---> Using CPU!')
 
-        if self.aug_file:
-            self.aug_model = torch.load(self.aug_file)
-            self.aug_param = self.aug_model['parameters']
-            self.netA = Augmenter(noise_dim=self.aug_param['num_n'],
-                                latent_dim=self.aug_param['num_z'],
-                                n_zim=self.aug_param['n_zim'],
-                                input_dim=self.aug_param['n_features'])
-            # Load the trained augmenter weights
-            self.netA.load_state_dict(self.aug_model['netA'])
-            self.netA = self.netA.to(self.device)
+        if self.aug:
+            self.netA = augmenter.to(self.device)
 
 
-    def init_model(self, n_categories, state_dim, input_dim, fc_dim=100, lowD_dim=10, x_drop=0.5, s_drop=0.2, lr=.001,
+    def init_model(self, n_categories, state_dim, input_dim, fc_dim=100, lowD_dim=10, x_drop=0., s_drop=0.,
                    lam=1, lam_pc=1, n_arm=2, temp=1., tau=0.005, beta=1., hard=False, variational=True, ref_prior=False,
                    trained_model='', n_pr=0, momentum=.01, mode='MSE'):
         """
@@ -70,7 +57,6 @@ class cpl_mixVAE:
             lowD_dim: dimension of the latent representation.
             x_drop: dropout probability at the first (input) layer.
             s_drop: dropout probability of the state variable.
-            lr: the learning rate of the optimizer, here Adam.
             lam: coupling factor in the cpl-mixVAE model.
             lam_pc: coupling factor for the prior categorical variable.
             n_arm: int value that indicates number of arms.
@@ -93,20 +79,34 @@ class cpl_mixVAE:
         self.n_arm = n_arm
         self.fc_dim = fc_dim
         self.ref_prior = ref_prior
-        self.model = mixVAE_model(input_dim=self.input_dim, fc_dim=fc_dim, n_categories=self.n_categories, state_dim=self.state_dim,
-                                lowD_dim=lowD_dim, x_drop=x_drop, s_drop=s_drop, n_arm=self.n_arm, lam=lam, lam_pc=lam_pc,
-                                tau=tau, beta=beta, hard=hard, variational=variational, device=self.device, eps=self.eps,
-                                ref_prior=ref_prior, momentum=momentum, loss_mode=mode)
+        self.model = mixVAE_model(
+                                input_dim=input_dim, 
+                                fc_dim=fc_dim, 
+                                n_categories=n_categories, 
+                                state_dim=state_dim,
+                                lowD_dim=lowD_dim, 
+                                x_drop=x_drop, 
+                                s_drop=s_drop, 
+                                n_arm=n_arm, 
+                                lam=lam, 
+                                lam_pc=lam_pc,
+                                tau=tau, 
+                                beta=beta, 
+                                hard=hard, 
+                                variational=variational, 
+                                device=self.device, 
+                                eps=self.eps,
+                                ref_prior=ref_prior,
+                                momentum=momentum, 
+                                loss_mode=mode,
+                                )
         
         self.model = self.model.to(self.device)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
 
         if len(trained_model) > 0:
             print('Load the pre-trained model')
             # if you wish to load another model for evaluation
-            loaded_file = torch.load(trained_model, map_location='cpu')
-            self.model.load_state_dict(loaded_file['model_state_dict'])
-            self.optimizer.load_state_dict(loaded_file['optimizer_state_dict'])
+            self.load_model(trained_model)
             self.init = False
             self.n_pr = n_pr
         else:
@@ -115,13 +115,13 @@ class cpl_mixVAE:
 
 
     def load_model(self, trained_model):
-        loaded_file = torch.load(trained_model, map_location='cpu')
+        loaded_file = torch.load(trained_model, map_location='cpu', weights_only=True)
         self.model.load_state_dict(loaded_file['model_state_dict'])
+        self.optimizer = torch.optim.Adam(self.model.parameters())
+        self.optimizer.load_state_dict(loaded_file['optimizer_state_dict'])
 
-        self.current_time = time.strftime('%Y-%m-%d-%H-%M-%S')
 
-
-    def train(self, train_loader, test_loader, n_epoch, n_epoch_p, c_p=0, c_onehot=0, min_con=.5, max_prun_it=0):
+    def train(self, train_loader, test_loader, n_epoch, n_epoch_p, lr=1e-3, c_p=0, c_onehot=0, min_con=.5, max_prun_it=0, n_scale=.1):
         """
         run the training of the cpl-mixVAE with the pre-defined parameters/settings
         pcikle used for saving the file
@@ -131,11 +131,12 @@ class cpl_mixVAE:
             test_loader: test dataloader.
             n_epoch: number of training epoch, without pruning.
             n_epoch_p: number of training epoch, with pruning.
+            lr: the learning rate of the optimizer, here Adam.
             c_p: the prior categorical variable, only if ref_prior is True.
             c_onehot: the one-hot representation of the prior categorical variable, only if ref_prior is True.
             min_con: minimum value of consensus among pair of arms.
             max_prun_it: maximum number of pruning iterations.
-            mode: the loss function, either 'MSE' or 'ZINB'.
+            n_scale: the scale of noise in the augmented data.
 
         return
             data_file_id: the output dictionary.
@@ -167,6 +168,8 @@ class cpl_mixVAE:
         f6_mask = f6_mask.to(self.device)
         batch_size = train_loader.batch_size
         
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
+        
         # training the model without pruning
         if self.init:
             print("Start training ...")
@@ -189,16 +192,9 @@ class cpl_mixVAE:
                     trans_data = []
                     tt = time.time()
                     for arm in range(self.n_arm):
-                        if self.aug_file:
-                            noise = torch.randn(batch_size, self.aug_param['num_n'], device=self.device)
-                            _, gen_data = self.netA(data, noise, True, self.device)
-                            if self.aug_param['n_zim'] > 1:
-                                data_bin = 0. * data
-                                data_bin[data > self.eps] = 1.
-                                fake_data = gen_data[:, :self.aug_param['n_features']] * data_bin
-                                trans_data.append(fake_data)
-                            else:
-                                trans_data.append(gen_data)
+                        if self.aug:
+                            _, gen_data = self.netA(data, True, n_scale)
+                            trans_data.append(torch.concat((data, gen_data), 0))
                         else:
                             trans_data.append(data)
 
@@ -208,11 +204,11 @@ class cpl_mixVAE:
                     else:
                         c_bin = 0.
                         prior_c = 0.
-
-                    self.optimizer.zero_grad()
+                   
                     recon_batch, p_x, r_x, x_low, qc, s, c, mu, log_var, log_qc = self.model(x=trans_data, temp=self.temp, prior_c=prior_c)
                     loss, loss_rec, loss_joint, entropy, dist_c, d_qc, KLD_cont, min_var_0, loglikelihood = \
                         self.model.loss(recon_batch, p_x, r_x, trans_data, mu, log_var, qc, c, c_bin)
+                    self.optimizer.zero_grad()
                     loss.backward()
                     self.optimizer.step()
                     train_loss_val += loss.data.item()
@@ -393,7 +389,7 @@ class cpl_mixVAE:
             # consensus among arms for each pair of arms 
             c_agreement = np.mean(c_agreement, axis=0)
             agreement = c_agreement[pruning_mask]
-            if (np.min(agreement) <= min_con) and pr < max_prun_it:
+            if pr < max_prun_it: # (np.min(agreement) <= min_con) and 
                 if pr > 0:
                     ind_min = pruning_mask[np.argmin(agreement)]
                     ind_min = np.array([ind_min])
@@ -464,21 +460,12 @@ class cpl_mixVAE:
                         data_bin = 0. * data
                         data_bin[data > 0.] = 1.
                         trans_data = []
-                        origin_data = []
-                        trans_data.append(data)
                         tt = time.time()
                         w_param, bias_param, activ_param = 0, 0, 0
-                        for arm in range(self.n_arm-1):
-                            if self.aug_file:
-                                noise = torch.randn(batch_size, self.aug_param['num_n']).to(self.device)
-                                _, gen_data = self.netA(data, noise, True, self.device)
-                                if self.aug_param['n_zim'] > 1:
-                                    data_bin = 0. * data
-                                    data_bin[data > self.eps] = 1.
-                                    fake_data = gen_data[:, :self.aug_param['n_features']] * data_bin
-                                    trans_data.append(fake_data)
-                                else:
-                                    trans_data.append(gen_data)
+                        for arm in range(self.n_arm):
+                            if self.aug:
+                                _, gen_data = self.netA(data, True, n_scale)
+                                trans_data.append(torch.concat((data, gen_data), 0))
                             else:
                                 trans_data.append(data)
 
@@ -636,8 +623,8 @@ class cpl_mixVAE:
         state_sample = np.zeros((self.n_arm, max_len, self.state_dim))
         state_mu = np.zeros((self.n_arm, max_len, self.state_dim))
         state_var = np.zeros((self.n_arm, max_len, self.state_dim))
-        z_prob = np.zeros((self.n_arm, max_len, self.n_categories))
-        z_sample = np.zeros((self.n_arm, max_len, self.n_categories))
+        z_prob = np.zeros((self.n_arm, max_len, self.n_categories)) # - len(prune_indx)))
+        z_sample = np.zeros((self.n_arm, max_len, self.n_categories)) # - len(prune_indx)))
         data_low = np.zeros((self.n_arm, max_len, self.lowD_dim))
         state_cat = np.zeros([self.n_arm, max_len])
         prob_cat = np.zeros([self.n_arm, max_len])
@@ -691,7 +678,7 @@ class cpl_mixVAE:
                         state_mu[arm, i * batch_size:min((i + 1) * batch_size, max_len), :] = mu[arm].cpu().detach().numpy()
                         state_var[arm, i * batch_size:min((i + 1) * batch_size, max_len), :] = log_sigma[arm].cpu().detach().numpy()
                         z_encoder = z_category[arm].cpu().data.view(z_category[arm].size()[0], self.n_categories).detach().numpy()
-                        z_prob[arm, i * batch_size:min((i + 1) * batch_size, max_len), :] = z_encoder
+                        z_prob[arm, i * batch_size:min((i + 1) * batch_size, max_len), :] = z_encoder #[:, prune_indx]
                         z_samp = z_smp[arm].cpu().data.view(z_smp[arm].size()[0], self.n_categories).detach().numpy()
                         z_sample[arm, i * batch_size:min((i + 1) * batch_size, max_len), :] = z_samp
                         data_low[arm,  i * batch_size:min((i + 1) * batch_size, max_len), :] = x_low[arm].detach().cpu().numpy()
@@ -740,7 +727,7 @@ class cpl_mixVAE:
                     state_mu[arm, :, :] = mu[arm].cpu().detach().numpy()
                     state_var[arm, :, :] = log_sigma[arm].cpu().detach().numpy()
                     z_encoder = z_category[arm].cpu().data.view(z_category[arm].size()[0], self.n_categories).detach().numpy()
-                    z_prob[arm, :, :] = z_encoder
+                    z_prob[arm, :, :] = z_encoder #[:, prune_indx]
                     z_samp = z_smp[arm].cpu().data.view(z_smp[arm].size()[0], self.n_categories).detach().numpy()
                     z_sample[arm, :, :] = z_samp
                     data_low[arm, :, :] = x_low[arm].detach().cpu().numpy()
@@ -758,6 +745,20 @@ class cpl_mixVAE:
                         predicted_label[arm, ] = np.argmax(z_encoder, axis=1) + 1
 
         
+        if (i + 1) * batch_size < max_len:
+            state_sample = state_sample[:, :(i+1) * batch_size, :]
+            state_mu = state_mu[:, :(i+1) * batch_size, :]
+            state_var = state_var[:, :(i+1) * batch_size, :]
+            z_prob = z_prob[:, :(i+1) * batch_size, :]
+            z_sample = z_sample[:, :(i+1) * batch_size, :]
+            data_low = data_low[:, :(i+1) * batch_size, :]
+            state_cat = state_cat[:, :(i+1) * batch_size]
+            prob_cat = prob_cat[:, :(i+1) * batch_size]
+            data_indx = data_indx[:(i+1) * batch_size]
+            recon_cell = recon_cell[:, :(i+1) * batch_size, :]
+            predicted_label = predicted_label[:, :(i+1) * batch_size]
+            
+            
         mean_test_rec = np.zeros(self.n_arm)
         mean_total_loss_rec = np.zeros(self.n_arm)
         mean_total_loglikelihood = np.zeros(self.n_arm)
@@ -787,6 +788,16 @@ class cpl_mixVAE:
         d_dict['prune_indx'] = prune_indx
 
         return d_dict
+    
+    
+    def sample_state(self, mu, var, n_samp=1000, seed=0):
+        np.random.seed(seed)
+        rand_indx = np.random.choice(mu.shape[0], n_samp, replace=True)
+        mu_tensor = torch.tensor(mu[rand_indx, :], dtype=torch.float32)
+        var_tensor = torch.tensor(var[rand_indx, :], dtype=torch.float32)
+        s = self.model.reparam_trick(mu_tensor, var_tensor)
+        
+        return rand_indx, s.numpy()
 
 
     def save_file(self, fname, **kwargs):
