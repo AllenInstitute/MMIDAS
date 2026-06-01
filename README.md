@@ -62,7 +62,7 @@ Work through the provided ```notebooks``` in the following sequential:
 
 ## License
 
-This project (figures, models, results, and documentation) is **dual-licensed**. See the [LICENSE](LICENSE) file for full terms.
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
 
 
 ## Citation
