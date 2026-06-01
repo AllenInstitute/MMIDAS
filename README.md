@@ -58,3 +58,27 @@ Work through the provided ```notebooks``` in the following sequential:
 3. Evaluation: Test the trained model(s) and identify categorical variables representing cell types using the proposed pruning approach in the simplex.
 4. Clusterability: Compare the accuracy and Silhouette score of identified clusters to the suggested t-type.
 5. State trvaersal analysis: Explore the role of genes in encoding the continuous variability inferred by the model.
+
+
+## License
+
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
+
+You are free to use, share, and adapt the material for **non-commercial** purposes, provided you give appropriate credit and cite the publication below. See the [LICENSE](LICENSE) file for details.
+
+## Citation
+
+If you use this software, in whole or in part, please cite:
+
+```bibtex
+@article{marghi2024joint,
+  title={Joint inference of discrete cell types and continuous type-specific variability in single-cell datasets with MMIDAS},
+  author={Marghi, Yeganeh and Gala, Rohan and Baftizadeh, Fahimeh and S{\"u}mb{\"u}l, Uygar},
+  journal={Nature Computational Science},
+  volume={4},
+  number={9},
+  pages={706--722},
+  year={2024},
+  publisher={Nature Publishing Group US New York}
+}
+```
