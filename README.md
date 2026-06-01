@@ -62,12 +62,7 @@ Work through the provided ```notebooks``` in the following sequential:
 
 ## License
 
-This project (figures, models, results, and documentation) is **dual-licensed**. You may use it under either option:
-
-- **Non-commercial use** — free, under terms equivalent to [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/): you may share and adapt the material, provided you give appropriate credit, cite the publication below.
-- **Commercial use** — requires a separate commercial license from the Allen Institute. Contact terms@alleninstitute.org for commercial licensing opportunities.
-
-See the [LICENSE](LICENSE) file for full terms.
+This project (figures, models, results, and documentation) is **dual-licensed**. See the [LICENSE](LICENSE) file for full terms.
 
 
 ## Citation
