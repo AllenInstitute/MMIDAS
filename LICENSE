@@ -1,13 +1,17 @@
-Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+Community License Agreement
 
-This work is licensed under the Creative Commons Attribution-NonCommercial 4.0
-International License. To view a copy of this license, visit
+Copyright (c) 2024. Allen Institute. All rights reserved.
 
-    https://creativecommons.org/licenses/by-nc/4.0/
+The Work is made available under a DUAL LICENSE. You may use the Work under the
+terms of EITHER of the two options below. Choose the option that fits your use.
 
-or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+===============================================================================
+OPTION A — Non-Commercial License (default)
+===============================================================================
 
--------------------------------------------------------------------------------
+Under this option, the Work is licensed under terms equivalent to the Creative
+Commons Attribution-NonCommercial-ShareAlike 4.0 International License
+(CC BY-NC-SA 4.0): https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 You are free to:
 
@@ -27,25 +31,31 @@ Under the following terms:
 
   * NonCommercial — You may not use the material for commercial purposes.
 
-  * No additional restrictions — You may not apply legal terms or technological
-    measures that legally restrict others from doing anything the license
-    permits.
 
-Notices:
+===============================================================================
+OPTION B — Commercial License (by agreement)
+===============================================================================
 
-  You do not have to comply with the license for elements of the material in
-  the public domain or where your use is permitted by an applicable exception
-  or limitation.
+For commercial purposes are not permitted without the Allen Institute's written permission.
+For purposes of this license, commercial purposes is the incorporation of this work into
+anything for which you will charge fees or other compensation. Contact terms@alleninstitute.org for commercial
+licensing opportunities.
 
-  No warranties are given. The license may not give you all of the permissions
-  necessary for your intended use. For example, other rights such as publicity,
-  privacy, or moral rights may limit how you use the material.
+
+===============================================================================
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER
+OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
 
 -------------------------------------------------------------------------------
 
 Citation
 
-If you use this software, in whole or in part, please cite:
+If you use this Work, in whole or in part, please cite:
 
   @article{marghi2024joint,
     title={Joint inference of discrete cell types and continuous type-specific
@@ -59,9 +69,3 @@ If you use this software, in whole or in part, please cite:
     year={2024},
     publisher={Nature Publishing Group US New York}
   }
-
--------------------------------------------------------------------------------
-
-The full legal text of the CC BY-NC 4.0 license is available at:
-
-    https://creativecommons.org/licenses/by-nc/4.0/legalcode
