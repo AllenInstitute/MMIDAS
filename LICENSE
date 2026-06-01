@@ -1,71 +1,33 @@
-Community License Agreement
+Allen Institute Software License – This software license is the 2-clause BSD 
+license plus clause a third clause that prohibits redistribution and use for 
+commercial purposes without further permission. 
 
-Copyright (c) 2024. Allen Institute. All rights reserved.
+Copyright © 2021. Allen Institute.  All rights reserved.
 
-The Work is made available under a DUAL LICENSE. You may use the Work under the
-terms of EITHER of the two options below. Choose the option that fits your use.
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
 
-===============================================================================
-OPTION A — Non-Commercial License (default)
-===============================================================================
+1. Redistributions of source code must retain the above copyright notice, this 
+list of conditions and the following disclaimer.
 
-Under this option, the Work is licensed under terms equivalent to the Creative
-Commons Attribution-NonCommercial-ShareAlike 4.0 International License
-(CC BY-NC-SA 4.0): https://creativecommons.org/licenses/by-nc-sa/4.0/
+2. Redistributions in binary form must reproduce the above copyright notice, 
+this list of conditions and the following disclaimer in the documentation 
+and/or other materials provided with the distribution.
 
-You are free to:
+3. Redistributions and use for commercial purposes are not permitted without 
+the Allen Institute’s written permission. For purposes of this license, 
+commercial purposes are the incorporation of the Allen Institute's software 
+into anything for which you will charge fees or other compensation or use of 
+the software to perform a commercial service for a third party. Contact 
+terms@alleninstitute.org for commercial licensing opportunities.
 
-  * Share — copy and redistribute the material in any medium or format.
-  * Adapt — remix, transform, and build upon the material.
-
-The licensor cannot revoke these freedoms as long as you follow the license
-terms.
-
-Under the following terms:
-
-  * Attribution — You must give appropriate credit, provide a link to the
-    license, and indicate if changes were made. You may do so in any reasonable
-    manner, but not in any way that suggests the licensor endorses you or your
-    use. If you use this work in academic or scientific contexts, you must cite
-    the publication listed below (see "Citation").
-
-  * NonCommercial — You may not use the material for commercial purposes.
-
-
-===============================================================================
-OPTION B — Commercial License (by agreement)
-===============================================================================
-
-For commercial purposes are not permitted without the Allen Institute's written 
-permission. For purposes of this license, commercial purposes is the incorporation 
-of this work into anything for which you will charge fees or other compensation. 
-Contact terms@alleninstitute.org for commercial licensing opportunities.
-
-
-===============================================================================
-
-THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER
-OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
-AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
-
--------------------------------------------------------------------------------
-
-Citation
-
-If you use this Work, in whole or in part, please cite:
-
-  @article{marghi2024joint,
-    title={Joint inference of discrete cell types and continuous type-specific
-           variability in single-cell datasets with MMIDAS},
-    author={Marghi, Yeganeh and Gala, Rohan and Baftizadeh, Fahimeh and
-            S{\"u}mb{\"u}l, Uygar},
-    journal={Nature Computational Science},
-    volume={4},
-    number={9},
-    pages={706--722},
-    year={2024},
-    publisher={Nature Publishing Group US New York}
-  }
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE 
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
