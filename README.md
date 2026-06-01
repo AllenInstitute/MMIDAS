@@ -62,13 +62,17 @@ Work through the provided ```notebooks``` in the following sequential:
 
 ## License
 
-This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
+This project (figures, models, results, and documentation) is **dual-licensed**. You may use it under either option:
 
-You are free to use, share, and adapt the material for **non-commercial** purposes, provided you give appropriate credit and cite the publication below. See the [LICENSE](LICENSE) file for details.
+- **Non-commercial use** — free, under terms equivalent to [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/): you may share and adapt the material, provided you give appropriate credit, cite the publication below.
+- **Commercial use** — requires a separate commercial license from the Allen Institute. Contact terms@alleninstitute.org for commercial licensing opportunities.
+
+See the [LICENSE](LICENSE) file for full terms.
+
 
 ## Citation
 
-If you use this software, in whole or in part, please cite:
+If you use this work, in whole or in part, please cite:
 
 ```bibtex
 @article{marghi2024joint,
